@@ -20,6 +20,12 @@ SUSPICIOUS_PHRASES = [
 CATEGORICAL_COLS = ["employment_type", "required_experience",
                      "required_education", "industry", "function"]
 
+# Binary/metadata columns -- must be excluded from the "word" bucket in
+# _get_top_reasons(), otherwise they get mislabeled as "Suspicious wording".
+NUMERIC_COLS = ["telecommuting", "has_company_logo", "has_questions", "has_salary",
+                "has_department", "suspicious_phrase_count", "description_length",
+                "has_email_gmail"]
+
 DEFAULT_JOB_FIELDS = {
     "title": "", "company_profile": "", "description": "", "requirements": "", "benefits": "",
     "employment_type": "Not Specified", "required_experience": "Not Specified",
@@ -131,6 +137,8 @@ class GuardianModel:
                 kind, label = "flag", fname.replace("flag_", "").replace("_", " ")
             elif fname.startswith(tuple(c + "_" for c in CATEGORICAL_COLS)):
                 kind, label = "category", fname.replace("_", " ")
+            elif fname in NUMERIC_COLS:
+                kind, label = "metadata", fname.replace("_", " ")
             else:
                 kind, label = "word", fname
             reasons.append({"kind": kind, "label": label, "shap": round(float(shap_vals_flat[i]), 4)})

@@ -61,6 +61,7 @@ function renderReasons(listEl, reasons) {
     let prefix = "";
     if (r.kind === "flag") prefix = "Suspicious phrase — ";
     else if (r.kind === "category") prefix = "Category signal — ";
+    else if (r.kind === "metadata") prefix = "Metadata — ";
     else prefix = "Wording — ";
     li.innerHTML = `${prefix}<strong>${r.label}</strong> <span class="reason-shap">SHAP ${r.shap > 0 ? "+" : ""}${r.shap}</span>`;
     listEl.appendChild(li);
