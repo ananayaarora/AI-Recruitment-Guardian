@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Recruitment Guardian — Posting Verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <filter id="roughen">
+    <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="2" result="noise" seed="7"/>
+    <feDisplacementMap in="SourceGraphic" in2="noise" scale="6"/>
+  </filter>
+</svg>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="eyebrow">CASE FILE&nbsp;&nbsp;·&nbsp;&nbsp;POSTING VERIFICATION</div>
+    <h1>AI Recruitment&nbsp;Guardian</h1>
+    <p class="subtitle">Submit a job posting below. The model examines its wording, structure and
+      metadata against known fraud patterns, then issues a trust ruling with its reasoning shown in full.</p>
+  </header>
+
+  <main class="docket">
+
+    <!-- ============ INPUT PANEL ============ -->
+    <section class="panel input-panel" id="input-panel">
+      <div class="panel-head">
+        <span class="panel-index">EXHIBIT A</span>
+        <span class="panel-title">Posting Under Review</span>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="paste">Paste details</button>
+        <button class="tab" data-tab="url">From URL</button>
+      </div>
+
+      <!-- PASTE MODE -->
+      <form id="paste-form" class="tab-panel active">
+        <label class="field">
+          <span class="field-label">Job title</span>
+          <input type="text" name="title" placeholder="e.g. Remote Data Entry Associate">
+        </label>
+
+        <label class="field">
+          <span class="field-label">Description</span>
+          <textarea name="description" rows="6" placeholder="Paste the full job description here…"></textarea>
+        </label>
+
+        <div class="field-row">
+          <label class="field">
+            <span class="field-label">Requirements</span>
+            <textarea name="requirements" rows="3" placeholder="Optional"></textarea>
+          </label>
+          <label class="field">
+            <span class="field-label">Company profile</span>
+            <textarea name="company_profile" rows="3" placeholder="Optional"></textarea>
+          </label>
+        </div>
+
+        <div class="field-grid">
+          <label class="field">
+            <span class="field-label">Employment type</span>
+            <select name="employment_type">
+              {% for opt in categories.employment_type %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Experience</span>
+            <select name="required_experience">
+              {% for opt in categories.required_experience %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Education</span>
+            <select name="required_education">
+              {% for opt in categories.required_education %}<option value="{{ opt }}">{{ opt }}</option>{% endfor %}
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Industry</span>
+            <input type="text" name="industry" list="industry-list" placeholder="Start typing…" value="Not Specified">
+            <datalist id="industry-list">
+              {% for opt in categories.industry %}<option value="{{ opt }}">{% endfor %}
+            </datalist>
+          </label>
+          <label class="field">
+            <span class="field-label">Function</span>
+            <input type="text" name="function" list="function-list" placeholder="Start typing…" value="Not Specified">
+            <datalist id="function-list">
+              {% for opt in categories.function %}<option value="{{ opt }}">{% endfor %}
+            </datalist>
+          </label>
+        </div>
+
+        <div class="checks">
+          <label class="check"><input type="checkbox" name="telecommuting"> Remote position</label>
+          <label class="check"><input type="checkbox" name="has_company_logo"> Has company logo</label>
+          <label class="check"><input type="checkbox" name="has_questions"> Has screening questions</label>
+          <label class="check"><input type="checkbox" name="has_salary"> Salary mentioned</label>
+          <label class="check"><input type="checkbox" name="has_department"> Department specified</label>
+        </div>
+
+        <button type="submit" class="run-btn">Run Verification</button>
+      </form>
+
+      <!-- URL MODE -->
+      <form id="url-form" class="tab-panel">
+        <label class="field">
+          <span class="field-label">Posting URL</span>
+          <input type="url" name="url" placeholder="https://company.com/careers/…" required>
+        </label>
+        <p class="hint">Works best on static company career pages. Sites that require
+          JavaScript to render (LinkedIn, Naukri, Indeed) may block extraction — switch to
+          “Paste details” if the result looks thin.</p>
+        <button type="submit" class="run-btn">Fetch &amp; Verify</button>
+      </form>
+
+      <div class="scan-line" id="scan-line"></div>
+    </section>
+
+    <!-- ============ RESULT PANEL ============ -->
+    <section class="panel result-panel" id="result-panel">
+      <div class="panel-head">
+        <span class="panel-index">EXHIBIT B</span>
+        <span class="panel-title">Verification Report</span>
+      </div>
+
+      <div class="result-empty" id="result-empty">
+        <div class="empty-mark">?</div>
+        <p>No posting has been submitted for review yet.<br>Results will appear here once you run a verification.</p>
+      </div>
+
+      <div class="result-body" id="result-body" hidden>
+        <div class="stamp-zone">
+          <div class="stamp" id="stamp">
+            <svg viewBox="0 0 200 200" class="stamp-ring" id="stamp-ring">
+              <circle cx="100" cy="100" r="92" fill="none" stroke="currentColor" stroke-width="3" filter="url(#roughen)"/>
+              <circle cx="100" cy="100" r="76" fill="none" stroke="currentColor" stroke-width="1.5" filter="url(#roughen)"/>
+            </svg>
+            <div class="stamp-text">
+              <div class="stamp-verdict" id="stamp-verdict">VERIFIED</div>
+              <div class="stamp-score" id="stamp-score">—</div>
+              <div class="stamp-sub">TRUST&nbsp;SCORE</div>
+            </div>
+          </div>
+          <div class="verdict-meta">
+            <div class="verdict-row"><span>Model prediction</span><strong id="pred-label">—</strong></div>
+            <div class="verdict-row"><span>Fake probability</span><strong id="pred-proba">—</strong></div>
+            <div class="verdict-row"><span>Risk classification</span><strong id="pred-risk">—</strong></div>
+          </div>
+        </div>
+
+        <div class="evidence" id="evidence-fake">
+          <h3>Findings against legitimacy</h3>
+          <ul id="fake-reasons-list"></ul>
+        </div>
+
+        <div class="evidence" id="evidence-genuine">
+          <h3>Findings supporting legitimacy</h3>
+          <ul id="genuine-reasons-list"></ul>
+        </div>
+
+        <div class="flags" id="flags-block" hidden>
+          <h3>Matched fraud-indicator phrases</h3>
+          <div class="flag-chips" id="flag-chips"></div>
+        </div>
+
+        <details class="excerpt-block">
+          <summary>View annotated posting text</summary>
+          <div class="excerpt" id="excerpt"></div>
+          <div class="legend">
+            <span><mark class="hl-fake">highlight</mark> pushes toward fake</span>
+            <span><mark class="hl-genuine">highlight</mark> pushes toward genuine</span>
+          </div>
+        </details>
+      </div>
+
+      <div class="result-error" id="result-error" hidden></div>
+    </section>
+
+  </main>
+
+  <footer class="colophon">
+    AI Recruitment Guardian — Explainable ML framework for fake job detection · XGBoost + SHAP
+  </footer>
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

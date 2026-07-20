@@ -13,12 +13,16 @@ env/
 # VS Code
 .vscode/
 
-# Model files
+# Model files -- ignore large training-only artifacts, but keep the
+# small deployment-critical ones needed by server.py
 *.pkl
 *.joblib
 *.h5
 *.pt
 *.pth
+!best_model.pkl
+!tfidf_vectorizer.pkl
+!onehot_encoder.pkl
 
 # Logs
 *.log
